@@ -154,7 +154,7 @@ public class CALModelManager {
         // TODO - can't currently make this work in runtime Eclipse
         // setting to false results in CAL Console finding the wrong version of Prelude.id.
         // setting to true results in builder not being able to find log4j classes. 
-        USE_PLATFORM_PLUGIN_LOADER_AS_PARENT_LOADER = !runtimeEclipse;
+        USE_PLATFORM_PLUGIN_LOADER_AS_PARENT_LOADER = runtimeEclipse;
     }
     
     /** Bitmask representing flags on a project delta signifying that the project dependency graph may have changed. */
