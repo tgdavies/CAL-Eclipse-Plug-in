@@ -135,27 +135,6 @@ public class CALModelManager {
     }
     
     public static boolean DEBUG = false;
-
-    /** 
-     * Flag to control which classloader is the parent of the project classloader.
-     * True to use the platform plugin's classloader.
-     * False to use Java's extension classloader.
-     */
-    private static final boolean USE_PLATFORM_PLUGIN_LOADER_AS_PARENT_LOADER;
-    static {
-        // HACK - change parent loader depending on whether we are in a runtime or standalone Eclipse.
-        // The classloader behaviour is different for these two cases.
-        String osgiBundleProperty = System.getProperty("osgi.bundles");
-        
-        // In the standalone Eclipse case the bundles are simple names.
-        // In the runtime case they are something like "reference:file:bundlename..."
-        boolean runtimeEclipse = osgiBundleProperty != null && osgiBundleProperty.startsWith("reference:");
-
-        // TODO - can't currently make this work in runtime Eclipse
-        // setting to false results in CAL Console finding the wrong version of Prelude.id.
-        // setting to true results in builder not being able to find log4j classes. 
-        USE_PLATFORM_PLUGIN_LOADER_AS_PARENT_LOADER = runtimeEclipse;
-    }
     
     /** Bitmask representing flags on a project delta signifying that the project dependency graph may have changed. */
     private static final int projectDependencyResourceChangeFlags = IResourceDelta.OPEN | IResourceDelta.DESCRIPTION;
@@ -1134,60 +1113,8 @@ public class CALModelManager {
     /**
      * @return the classloader to serve as the parent loader of the project classloaders.
      */
-    private static ClassLoader getParentLoader() {
-        if (USE_PLATFORM_PLUGIN_LOADER_AS_PARENT_LOADER) {
-            /*
-             * Return the platform plugin classloader.
-             * 
-             * ***** IMPORTANT LIMITATION ******
-             * This classloader loads all classes in the plugin, plus all classes it depends on.
-             * In particular, this includes:
-             *   - all classes in the plugin, including the platform and utilities classes.
-             *   - JRE classes
-             * 
-             * These may conflict with the equivalent classes if any in the workspace.
-             * For instance, if a change is made to a platform or utilities class, it will not be visible to this classloader.
-             * 
-             * In practice this only affects those making changes in the implementation of CAL.
-             * However it leads to some classloading inefficiency as the plugin and JRE classes appear twice in the classpath.
-             */
-            
-            return MachineType.class.getClassLoader();
-
-        } else {
-        
-            /*
-             * Return the extension classloader.
-             * 
-             * ***** IMPORTANT LIMITATION ******
-             * Note that this classloader is the classloader used to create the current jre's runtime classes.
-             * This won't work if the runtime environment used to run Eclipse is different from the jdk on the project's classpath.
-             * 
-             * For instance:
-             *   If we run Eclipse using java 5, but compile a project using Java 6, 
-             *     we will have this classloader as a 5 classloader attempting to load Java 6 classes.
-             *     This results in an UnsupportedClassVersionError.
-             *   If we run Eclipse using java 6, but compile a project using Java 5, 
-             *     we will have this classloader as a Java 6 classloader attempting to load Java 5 classes.
-             *     Because of delegation, this classloader will be checked before the project classloaders.
-             *     This classloader may return a class which exists in Java 6 but not in Java 5.
-             */
-
-            /*
-             * NOTE:
-             *   Does this only work for Sun jvms?
-             *   For known Sun jvms, the system classloader hierarchy is:
-             *     App classloader        - loads classes from the classpath.
-             *     Ext classloader        - loads classes from the ext dirs.
-             *     Bootstrap classloader  - loads java runtime classes.
-             */
-            ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-            ClassLoader parent = systemClassLoader.getParent();
-            if (parent != null) {
-                return parent;
-            }
-            return systemClassLoader;
-        }
+    private static ClassLoader getParentLoader() {        
+        return MachineType.class.getClassLoader();       
     }
     
     /** 
