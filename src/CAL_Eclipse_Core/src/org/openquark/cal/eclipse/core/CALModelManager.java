@@ -257,6 +257,10 @@ public class CALModelManager {
         }  
     };
     
+    public void clearClassLoaders() {
+    	projectNameToClassloaderCacheMap.clear();
+    }
+    
     
     /**
      * The save participant which handles workspace saves.

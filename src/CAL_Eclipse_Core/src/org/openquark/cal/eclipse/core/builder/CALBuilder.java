@@ -1138,6 +1138,7 @@ public class CALBuilder extends IncrementalProjectBuilder {
             // Should update status listener to notify when finished compiling a module.
             
             CALModelManager modelManager = CALModelManager.getCALModelManager();
+            modelManager.clearClassLoaders();
             
             // Remove any and all modules referenced by the old build state.
             if (lastState != null) {
@@ -1214,6 +1215,7 @@ public class CALBuilder extends IncrementalProjectBuilder {
             
             IProject project = getProject();
             CALModelManager modelManager = CALModelManager.getCALModelManager();
+            modelManager.clearClassLoaders();
             ProgramModelManager programModelManager = modelManager.getProgramModelManager();
             
             EclipseModuleSourceDefinitionGroup definitionGroup = getModuleSourceDefinitionGroup();
